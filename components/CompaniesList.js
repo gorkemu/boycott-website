@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../style.css';
+import CompanyItem from './CompanyItem';
 
 function CompaniesList() {
   const [companies, setCompanies] = useState([]);
@@ -148,40 +149,19 @@ function CompaniesList() {
         <button onClick={() => setSortType(null)}>Clear Sort</button>
       </div>
       <ul>
-        {sortedCompanies.map((company) => (
-          <li key={company._id}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{ width: '50px', height: '50px', border: '1px solid #ccc', marginRight: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                Logo
-              </div>
-              <div>
-                {company.name} -
-                <span style={{ color: 'green', marginLeft: '5px' }}>👍 {company.upvotes}</span> -
-                <span style={{ color: 'red', marginLeft: '5px' }}>👎 {company.downvotes}</span>
-              </div>
-            </div>
-            <button onClick={() => handleVote(company._id, 'upvote')}>👍</button>
-            <button onClick={() => handleVote(company._id, 'downvote')}>👎</button>
-            <button onClick={() => handleToggleComments(company._id)}>💬</button>
-            {showCommentsFor === company._id && (
-              <div>
-                <ul>
-                  {company.comments.map((comment, commentIndex) => (
-                    <li key={commentIndex}>{comment}</li>
-                  ))}
-                </ul>
-                <input
-                  type="text"
-                  value={companyComments[company._id] || ''}
-                  onChange={(e) => handleCommentChange(company._id, e.target.value)}
-                  placeholder="Enter comment"
-                />
-                <button onClick={() => handleAddComment(company._id, companyComments[company._id])}>Add 💬</button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+  {sortedCompanies.map((company) => (
+    <CompanyItem
+      key={company._id}
+      company={company}
+      handleVote={handleVote}
+      handleToggleComments={handleToggleComments}
+      showCommentsFor={showCommentsFor}
+      companyComments={companyComments}
+      handleCommentChange={handleCommentChange}
+      handleAddComment={handleAddComment}
+    />
+  ))}
+</ul>
     </div>
   );
 }

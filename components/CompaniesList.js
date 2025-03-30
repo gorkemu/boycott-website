@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import '../style.css';
 import CompanyItem from './CompanyItem';
+import CompanyForm from './CompanyForm';
 
 function CompaniesList() {
   const [companies, setCompanies] = useState([]);
-  const [newCompany, setNewCompany] = useState('');
   const [companyComments, setCompanyComments] = useState({});
   const [showCommentsFor, setShowCommentsFor] = useState(null);
   const [sortType, setSortType] = useState(null);
@@ -30,18 +30,18 @@ function CompaniesList() {
       });
   }, []);
 
-  const handleAddCompany = () => {
-    if (newCompany.trim() === '') {
+  const handleAddCompany = (companyName) => {
+    if (companyName.trim() === '') {
       alert('Please enter a company name.');
       return;
     }
-    setLoading(true); // Set loading to true before adding
+    setLoading(true);
     fetch('http://localhost:5000/companies', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ name: newCompany }),
+      body: JSON.stringify({ name: companyName }), // Use companyName argument
     })
       .then((res) => {
         if (!res.ok) {
@@ -51,13 +51,12 @@ function CompaniesList() {
       })
       .then((data) => {
         setCompanies([...companies, data]);
-        setLoading(false); // Set loading to false after adding
+        setLoading(false);
       })
       .catch((err) => {
         setError(err.message);
-        setLoading(false); // Set loading to false on error
+        setLoading(false);
       });
-    setNewCompany('');
   };
 
   const handleVote = (id, voteType) => {
@@ -136,32 +135,26 @@ function CompaniesList() {
       {error && <p className="error">{error}</p>}
       {loading && <p className="loading">Loading...</p>}
       <h2>Boycott Companies</h2>
-      <input
-        type="text"
-        value={newCompany}
-        onChange={(e) => setNewCompany(e.target.value)}
-        placeholder="Enter company name"
-      />
-      <button onClick={handleAddCompany}>Add</button>
+      <CompanyForm onAddCompany={handleAddCompany} /> 
       <div>
         <button onClick={() => setSortType('upvotes')}>Sort by Upvotes</button>
         <button onClick={() => setSortType('downvotes')}>Sort by Downvotes</button>
         <button onClick={() => setSortType(null)}>Clear Sort</button>
       </div>
       <ul>
-  {sortedCompanies.map((company) => (
-    <CompanyItem
-      key={company._id}
-      company={company}
-      handleVote={handleVote}
-      handleToggleComments={handleToggleComments}
-      showCommentsFor={showCommentsFor}
-      companyComments={companyComments}
-      handleCommentChange={handleCommentChange}
-      handleAddComment={handleAddComment}
-    />
-  ))}
-</ul>
+        {sortedCompanies.map((company) => (
+          <CompanyItem
+            key={company._id}
+            company={company}
+            handleVote={handleVote}
+            handleToggleComments={handleToggleComments}
+            showCommentsFor={showCommentsFor}
+            companyComments={companyComments}
+            handleCommentChange={handleCommentChange}
+            handleAddComment={handleAddComment}
+          />
+        ))}
+      </ul>
     </div>
   );
 }

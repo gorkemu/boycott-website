@@ -2,15 +2,26 @@ import React, { useState } from 'react';
 import './CompanyItem.css';
 
 function CompanyItem({ company, handleVote, handleToggleComments, showCommentsFor, companyComments, handleCommentChange, handleAddComment }) {
-  const [commentError, setCommentError] = useState(''); // Add commentError state
+  const [commentError, setCommentError] = useState('');
+  const [userVote, setUserVote] = useState(null); // Track user vote
+
+  const handleVoteClick = (voteType) => {
+    if (userVote === voteType) {
+      setUserVote(null); // Remove vote
+      handleVote(company._id, null); // Send null to backend
+    } else {
+      setUserVote(voteType); // Change vote
+      handleVote(company._id, voteType); // Send vote to backend
+    }
+  };
 
   const handleAddCommentWrapper = (id, comment) => {
     if (comment.trim() === '') {
-      setCommentError('Please enter a comment.'); // Set commentError
+      setCommentError('Please enter a comment.');
       return;
     }
     handleAddComment(id, comment);
-    setCommentError(''); // Clear error after successful add
+    setCommentError('');
   };
 
   return (
@@ -24,8 +35,18 @@ function CompanyItem({ company, handleVote, handleToggleComments, showCommentsFo
         <span className="company-item-votes downvotes">👎 {company.downvotes}</span>
       </div>
       <div className="company-item-actions">
-        <button onClick={() => handleVote(company._id, 'upvote')}>👍</button>
-        <button onClick={() => handleVote(company._id, 'downvote')}>👎</button>
+        <button
+          onClick={() => handleVoteClick('upvote')}
+          className={userVote === 'upvote' ? 'active' : ''}
+        >
+          👍
+        </button>
+        <button
+          onClick={() => handleVoteClick('downvote')}
+          className={userVote === 'downvote' ? 'active' : ''}
+        >
+          👎
+        </button>
         <button onClick={() => handleToggleComments(company._id)}>💬</button>
       </div>
       {showCommentsFor === company._id && (
@@ -40,7 +61,7 @@ function CompanyItem({ company, handleVote, handleToggleComments, showCommentsFo
             value={companyComments[company._id] || ''}
             onChange={(e) => {
               handleCommentChange(company._id, e.target.value);
-              setCommentError(''); // Clear error on input change
+              setCommentError('');
             }}
             placeholder="Enter comment"
           />
@@ -52,4 +73,4 @@ function CompanyItem({ company, handleVote, handleToggleComments, showCommentsFo
   );
 }
 
-export default React.memo(CompanyItem); // Wrap with React.memo
+export default React.memo(CompanyItem);

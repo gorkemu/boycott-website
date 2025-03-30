@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
-import './CompaniesList.css'; // Import CSS
+import './CompaniesList.css';
 import CompanyItem from './CompanyItem';
 const CompanyForm = lazy(() => import('./CompanyForm'));
 
@@ -9,45 +9,52 @@ function CompaniesList() {
   const [showCommentsFor, setShowCommentsFor] = useState(null);
   const [sortType, setSortType] = useState(null);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true); // Added loading state
+  const [loading, setLoading] = useState(true);
+
+  // Helper function to include Authorization header
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Unauthorized: Please log in to perform this action.');
+    }
+    return {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    };
+  };
 
   useEffect(() => {
-    setLoading(true);
-    fetch('http://localhost:5000/companies')
-      .then((res) => {
-        if (!res.ok) {
+    const fetchCompanies = async () => {
+      setLoading(true);
+      try {
+        const headers = getAuthHeaders();
+        const response = await fetch('http://localhost:5000/companies', {
+          headers: headers,
+        });
+        if (!response.ok) {
           throw new Error('Failed to fetch companies.');
         }
-        return res.json();
-      })
-      .then((data) => {
+        const data = await response.json();
         setCompanies(data);
         setLoading(false);
-      })
-      .catch((err) => {
-        if (err.message === 'Failed to fetch companies.') {
-          setError('Sorry, we could not retrieve the list of companies. Please try again later.');
-        } else {
-          setError('An unexpected error occurred while loading companies. Please try again.');
-        }
+      } catch (err) {
+        setError(err.message);
         setLoading(false);
-      });
+      }
+    };
+    fetchCompanies();
   }, []);
 
   const handleAddCompany = (companyName) => {
     if (companyName.trim() === '') {
-      // This check is redundant, as it is already being checked in CompanyForm.js
-      // However, keeping it here adds an extra layer of safety.
       alert('Please enter a company name.');
       return;
     }
     setLoading(true);
     fetch('http://localhost:5000/companies', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name: companyName }), // Use companyName passed from CompanyForm
+      headers: getAuthHeaders(), // Use the helper function
+      body: JSON.stringify({ name: companyName }),
     })
       .then((res) => {
         if (!res.ok) {
@@ -60,11 +67,7 @@ function CompaniesList() {
         setLoading(false);
       })
       .catch((err) => {
-        if (err.message === 'Failed to add company.') {
-          setError('There was a problem adding the company. Please check your network connection and try again.');
-        } else {
-          setError('An unexpected error occurred while adding the company.');
-        }
+        setError(err.message);
         setLoading(false);
       });
   };
@@ -73,6 +76,7 @@ function CompaniesList() {
     setLoading(true);
     fetch(`http://localhost:5000/companies/${id}/${voteType}`, {
       method: 'PUT',
+      headers: getAuthHeaders(), // Use the helper function
     })
       .then((res) => {
         if (!res.ok) {
@@ -88,26 +92,20 @@ function CompaniesList() {
         setLoading(false);
       })
       .catch((err) => {
-        if (err.message === `Failed to ${voteType} company.`) {
-          setError(`Failed to ${voteType} the company. Please try again.`);
-        } else {
-          setError(`An unexpected error occurred while ${voteType}ing.`);
-        }
+        setError(err.message);
         setLoading(false);
       });
-  }, [setCompanies, setLoading, setError, companies]); // Dependencies
+  }, [setCompanies, setLoading, setError, companies, getAuthHeaders]); //Added getAuthHeaders to dependencies
 
   const handleAddComment = (id, comment) => {
     if (comment.trim() === '') {
-      alert('Please enter a comment.'); // Or set and display an error state.
-      return; // Prevent API call
+      alert('Please enter a comment.');
+      return;
     }
     setLoading(true);
     fetch(`http://localhost:5000/companies/${id}/comments`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(), // Use the helper function
       body: JSON.stringify({ comment }),
     })
       .then((res) => {
@@ -124,11 +122,7 @@ function CompaniesList() {
         setLoading(false);
       })
       .catch((err) => {
-        if (err.message === 'Failed to add comment.') {
-          setError('Failed to add comment. Please try again.');
-        } else {
-          setError('An unexpected error occurred while adding a comment.');
-        }
+        setError(err.message);
         setLoading(false);
       });
   };
@@ -158,8 +152,8 @@ function CompaniesList() {
       {loading && <p className="loading">Loading...</p>}
       <h2>Boycott Companies</h2>
       <Suspense fallback={<div>Loading Form...</div>}>
-                <CompanyForm onAddCompany={handleAddCompany} />
-            </Suspense>
+        <CompanyForm onAddCompany={handleAddCompany} />
+      </Suspense>
       <div className="sort-buttons">
         <button onClick={() => setSortType('upvotes')}>Sort by Upvotes</button>
         <button onClick={() => setSortType('downvotes')}>Sort by Downvotes</button>

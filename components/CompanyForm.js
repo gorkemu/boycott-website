@@ -1,35 +1,57 @@
 import React, { useState } from 'react';
-import './CompanyForm.css';
 
 function CompanyForm({ onAddCompany }) {
-  const [newCompany, setNewCompany] = useState('');
-  const [error, setError] = useState(''); // Add error state
+  const [companyName, setCompanyName] = useState('');
+  const [error, setError] = useState(null); // Add error state
 
-  const handleAddCompany = () => {
-    if (newCompany.trim() === '') {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (companyName.trim() === '') {
       setError('Please enter a company name.'); // Set error state
       return;
     }
-    onAddCompany(newCompany);
-    setNewCompany('');
-    setError(''); // Clear error state after successful add
+    setError(null); // Clear error state before making the request
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Unauthorized: Please log in to add a company.'); // Set error state
+      return;
+    }
+
+    fetch('http://localhost:5000/companies', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`, // Include JWT
+      },
+      body: JSON.stringify({ name: companyName }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Failed to add company.');
+        }
+        return res.json();
+      })
+      .then((data) => {
+        onAddCompany(data.name); // Pass only the name to onAddCompany
+        setCompanyName('');
+      })
+      .catch((err) => {
+        setError(err.message); // Set error state
+      });
   };
 
   return (
-    <div className="company-form">
+    <form onSubmit={handleSubmit}>
       <input
         type="text"
-        value={newCompany}
-        onChange={(e) => {
-          setNewCompany(e.target.value);
-          setError(''); // Clear error on input change
-        }}
+        value={companyName}
+        onChange={(e) => setCompanyName(e.target.value)}
         placeholder="Enter company name"
       />
-      <button onClick={handleAddCompany}>Add</button>
-      {error && <p className="error">{error}</p>} {/* Display error */}
-    </div>
+      <button type="submit">Add Company</button>
+      {error && <p className="error">{error}</p>} {/* Display error message */}
+    </form>
   );
 }
 
-export default React.memo(CompanyForm); // Wrap with React.memo
+export default CompanyForm;

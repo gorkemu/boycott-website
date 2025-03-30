@@ -38,3 +38,7 @@
   .company-item-comments {
     margin-top: 10px;
   }
+
+  .company-item-actions .active {
+    background-color: lightblue; /* Or other highlighting style */
+}

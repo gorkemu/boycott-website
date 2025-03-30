@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const authRoutes = require('./routes/auth');
+const jwt = require('jsonwebtoken'); // Import jsonwebtoken
 
 const app = express();
 const port = 5000;
@@ -12,7 +14,7 @@ app.use(express.json());
 // MongoDB Connection
 const mongoURI = process.env.MONGODB_URI;
 
-mongoose.connect(mongoURI) // Remove the options
+mongoose.connect(mongoURI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 
@@ -26,8 +28,23 @@ const companySchema = new mongoose.Schema({
 
 const Company = mongoose.model('Company', companySchema);
 
+// Middleware to verify JWT
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token == null) return res.sendStatus(401); // No token
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403); // Invalid token
+    req.user = user;
+    next(); // Proceed to the next middleware or route handler
+  });
+};
+
 // API Endpoints
-app.get('/companies', async (req, res) => {
+app.use('/auth', authRoutes);
+app.get('/companies', authenticateToken, async (req, res) => { // Apply middleware
   try {
     const companies = await Company.find();
     res.json(companies);
@@ -36,7 +53,7 @@ app.get('/companies', async (req, res) => {
   }
 });
 
-app.post('/companies', async (req, res) => {
+app.post('/companies', authenticateToken, async (req, res) => { // Apply middleware
   const company = new Company(req.body);
   try {
     const newCompany = await company.save();
@@ -46,7 +63,7 @@ app.post('/companies', async (req, res) => {
   }
 });
 
-app.put('/companies/:id/upvote', async (req, res) => {
+app.put('/companies/:id/upvote', authenticateToken, async (req, res) => { // Apply middleware
   try {
     const company = await Company.findById(req.params.id);
     if (!company) {
@@ -60,7 +77,7 @@ app.put('/companies/:id/upvote', async (req, res) => {
   }
 });
 
-app.put('/companies/:id/downvote', async (req, res) => {
+app.put('/companies/:id/downvote', authenticateToken, async (req, res) => { // Apply middleware
   try {
     const company = await Company.findById(req.params.id);
     if (!company) {
@@ -74,7 +91,7 @@ app.put('/companies/:id/downvote', async (req, res) => {
   }
 });
 
-app.put('/companies/:id/comments', async (req, res) => {
+app.put('/companies/:id/comments', authenticateToken, async (req, res) => { // Apply middleware
   try {
     const company = await Company.findById(req.params.id);
     if (!company) {

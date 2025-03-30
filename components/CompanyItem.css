@@ -1,0 +1,40 @@
+.company-item {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding: 10px;
+  }
+  
+  .company-item-logo {
+    width: 50px;
+    height: 50px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .company-item-details {
+    flex-grow: 1;
+  }
+  
+  .company-item-votes {
+    margin-left: 10px;
+  }
+  
+  .company-item-votes .upvotes {
+    color: green;
+  }
+  
+  .company-item-votes .downvotes {
+    color: red;
+  }
+  
+  .company-item-actions button {
+    margin-left: 5px;
+  }
+  
+  .company-item-comments {
+    margin-top: 10px;
+  }

@@ -1,0 +1,35 @@
+.companies-list {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .companies-list h2 {
+    margin-bottom: 20px;
+  }
+  
+  .companies-list ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .companies-list .error {
+    color: red;
+    margin-bottom: 10px;
+  }
+  
+  .companies-list .loading {
+    color: blue;
+    margin-bottom: 10px;
+  }
+  
+  .companies-list .sort-buttons {
+    margin-bottom: 10px;
+  }
+  
+  .companies-list .sort-buttons button {
+    margin-right: 5px;
+    padding: 8px 15px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }

@@ -1,0 +1,23 @@
+.company-form {
+    display: flex;
+    margin-bottom: 20px;
+  }
+  
+  .company-form input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+  }
+  
+  .company-form button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .company-form button:hover {
+    background-color: #0056b3;
+  }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import '../style.css';
+import './CompaniesList.css'; // Import CSS
 import CompanyItem from './CompanyItem';
 import CompanyForm from './CompanyForm';
 
@@ -12,7 +12,7 @@ function CompaniesList() {
   const [loading, setLoading] = useState(true); // Added loading state
 
   useEffect(() => {
-    setLoading(true); // Set loading to true before fetching
+    setLoading(true);
     fetch('http://localhost:5000/companies')
       .then((res) => {
         if (!res.ok) {
@@ -22,16 +22,22 @@ function CompaniesList() {
       })
       .then((data) => {
         setCompanies(data);
-        setLoading(false); // Set loading to false after fetching
+        setLoading(false);
       })
       .catch((err) => {
-        setError(err.message);
-        setLoading(false); // Set loading to false on error
+        if (err.message === 'Failed to fetch companies.') {
+          setError('Sorry, we could not retrieve the list of companies. Please try again later.');
+        } else {
+          setError('An unexpected error occurred while loading companies. Please try again.');
+        }
+        setLoading(false);
       });
   }, []);
 
   const handleAddCompany = (companyName) => {
     if (companyName.trim() === '') {
+      // This check is redundant, as it is already being checked in CompanyForm.js
+      // However, keeping it here adds an extra layer of safety.
       alert('Please enter a company name.');
       return;
     }
@@ -41,7 +47,7 @@ function CompaniesList() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ name: companyName }), // Use companyName argument
+      body: JSON.stringify({ name: companyName }), // Use companyName passed from CompanyForm
     })
       .then((res) => {
         if (!res.ok) {
@@ -54,37 +60,42 @@ function CompaniesList() {
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message);
+        if (err.message === 'Failed to add company.') {
+          setError('There was a problem adding the company. Please check your network connection and try again.');
+        } else {
+          setError('An unexpected error occurred while adding the company.');
+        }
         setLoading(false);
       });
   };
 
   const handleVote = (id, voteType) => {
-    setLoading(true); // Set loading to true before voting
-    fetch(`http://localhost:5000/companies/${id}/${voteType}`, {
-      method: 'PUT',
+    setLoading(true);
+    fetch(`http://localhost:5000/companies/<span class="math-inline">\{id\}/</span>{voteType}`, {
+      // ... (fetch options)
     })
       .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to ${voteType} company.`);
-        }
-        return res.json();
+        // ... (response handling)
       })
       .then((updatedCompany) => {
-        const updatedCompanies = companies.map((company) =>
-          company._id === id ? updatedCompany : company
-        );
-        setCompanies(updatedCompanies);
-        setLoading(false); // Set loading to false after voting
+        // ... (data handling)
       })
       .catch((err) => {
-        setError(err.message);
-        setLoading(false); // Set loading to false on error
+        if (err.message === `Failed to ${voteType} company.`) {
+          setError(`Failed to ${voteType} the company. Please try again.`);
+        } else {
+          setError(`An unexpected error occurred while ${voteType}ing.`);
+        }
+        setLoading(false);
       });
   };
 
   const handleAddComment = (id, comment) => {
-    setLoading(true); // Set loading to true before adding comment
+    if (comment.trim() === '') {
+      alert('Please enter a comment.'); // Or set and display an error state.
+      return; // Prevent API call
+    }
+    setLoading(true);
     fetch(`http://localhost:5000/companies/${id}/comments`, {
       method: 'PUT',
       headers: {
@@ -103,14 +114,18 @@ function CompaniesList() {
           company._id === id ? updatedCompany : company
         );
         setCompanies(updatedCompanies);
-        setLoading(false); // Set loading to false after adding comment
+        setLoading(false);
       })
       .catch((err) => {
-        setError(err.message);
-        setLoading(false); // Set loading to false on error
+        if (err.message === 'Failed to add comment.') {
+          setError('Failed to add comment. Please try again.');
+        } else {
+          setError('An unexpected error occurred while adding a comment.');
+        }
+        setLoading(false);
       });
   };
-
+  
   const handleToggleComments = (id) => {
     setShowCommentsFor(showCommentsFor === id ? null : id);
     if (!companyComments[id]) {
@@ -131,12 +146,12 @@ function CompaniesList() {
   }, [companies, sortType]);
 
   return (
-    <div>
+    <div className="companies-list">
       {error && <p className="error">{error}</p>}
       {loading && <p className="loading">Loading...</p>}
       <h2>Boycott Companies</h2>
-      <CompanyForm onAddCompany={handleAddCompany} /> 
-      <div>
+      <CompanyForm onAddCompany={handleAddCompany} />
+      <div className="sort-buttons">
         <button onClick={() => setSortType('upvotes')}>Sort by Upvotes</button>
         <button onClick={() => setSortType('downvotes')}>Sort by Downvotes</button>
         <button onClick={() => setSortType(null)}>Clear Sort</button>

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import './CompaniesList.css'; // Import CSS
 import CompanyItem from './CompanyItem';
-import CompanyForm from './CompanyForm';
+const CompanyForm = lazy(() => import('./CompanyForm'));
 
 function CompaniesList() {
   const [companies, setCompanies] = useState([]);
@@ -69,16 +69,23 @@ function CompaniesList() {
       });
   };
 
-  const handleVote = (id, voteType) => {
+  const handleVote = useCallback((id, voteType) => {
     setLoading(true);
-    fetch(`http://localhost:5000/companies/<span class="math-inline">\{id\}/</span>{voteType}`, {
-      // ... (fetch options)
+    fetch(`http://localhost:5000/companies/${id}/${voteType}`, {
+      method: 'PUT',
     })
       .then((res) => {
-        // ... (response handling)
+        if (!res.ok) {
+          throw new Error(`Failed to ${voteType} company.`);
+        }
+        return res.json();
       })
       .then((updatedCompany) => {
-        // ... (data handling)
+        const updatedCompanies = companies.map((company) =>
+          company._id === id ? updatedCompany : company
+        );
+        setCompanies(updatedCompanies);
+        setLoading(false);
       })
       .catch((err) => {
         if (err.message === `Failed to ${voteType} company.`) {
@@ -88,7 +95,7 @@ function CompaniesList() {
         }
         setLoading(false);
       });
-  };
+  }, [setCompanies, setLoading, setError, companies]); // Dependencies
 
   const handleAddComment = (id, comment) => {
     if (comment.trim() === '') {
@@ -125,7 +132,7 @@ function CompaniesList() {
         setLoading(false);
       });
   };
-  
+
   const handleToggleComments = (id) => {
     setShowCommentsFor(showCommentsFor === id ? null : id);
     if (!companyComments[id]) {
@@ -150,7 +157,9 @@ function CompaniesList() {
       {error && <p className="error">{error}</p>}
       {loading && <p className="loading">Loading...</p>}
       <h2>Boycott Companies</h2>
-      <CompanyForm onAddCompany={handleAddCompany} />
+      <Suspense fallback={<div>Loading Form...</div>}>
+                <CompanyForm onAddCompany={handleAddCompany} />
+            </Suspense>
       <div className="sort-buttons">
         <button onClick={() => setSortType('upvotes')}>Sort by Upvotes</button>
         <button onClick={() => setSortType('downvotes')}>Sort by Downvotes</button>

@@ -32,4 +32,4 @@ function CompanyForm({ onAddCompany }) {
   );
 }
 
-export default CompanyForm;
+export default React.memo(CompanyForm); // Wrap with React.memo

@@ -52,4 +52,4 @@ function CompanyItem({ company, handleVote, handleToggleComments, showCommentsFo
   );
 }
 
-export default CompanyItem;
+export default React.memo(CompanyItem); // Wrap with React.memo
